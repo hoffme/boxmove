@@ -3,7 +3,6 @@ package box
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -83,8 +82,6 @@ func (b *mongoRepository) findById(id string) (dto, error) {
 func (b *mongoRepository) findAll(filter *Filter) ([]dto, error) {
 	f := bsonFilter(filter)
 
-	fmt.Println(f)
-
 	cursor, err := b.collection().Find(b.ctx, f)
 	if err != nil {
 		return nil, err
@@ -116,7 +113,6 @@ func (b *mongoRepository) create(fields *createParams) (dto, error) {
 
 	result, err := b.collection().InsertOne(b.ctx, dto)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 

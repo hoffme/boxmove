@@ -21,9 +21,9 @@ func FindMove(repo Repository, id string) (*Move, error) {
 		return nil, nil
 	}
 
-	tr := &Move{ repo: repo, id: id, dto: dto }
+	move := &Move{ repo: repo, id: id, dto: dto }
 
-	return tr, nil
+	return move, nil
 }
 
 func FindMoves(repo Repository, filter *Filter) ([]*Move, error) {

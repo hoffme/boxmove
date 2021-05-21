@@ -58,10 +58,8 @@ func (r *MongoRepository) findById(id string) (dto, error) {
 		return nil, err
 	}
 
-	searchParams := bson.M{ "deleted_at": nil, "_id": idP }
-
 	dto := &dtoMongo{}
-	err = r.collection().FindOne(r.ctx, searchParams).Decode(dto)
+	err = r.collection().FindOne(r.ctx, bson.M{ "_id": idP }).Decode(dto)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +68,60 @@ func (r *MongoRepository) findById(id string) (dto, error) {
 }
 
 func (r *MongoRepository) findAll(filter *Filter) ([]dto, error) {
+	f := bsonFilter(filter)
+
+	cursor, err := r.collection().Find(r.ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err := cursor.Close(r.ctx)
+		if err != nil {
+			log.Print(err)
+		}
+	}()
+
+	var result []dto
+	for cursor.Next(r.ctx) {
+		dto := &dtoMongo{}
+
+		err := cursor.Decode(dto)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, dto)
+	}
+
+	return result, nil
+}
+
+func (r *MongoRepository) create(params *CreateParams) (dto, error) {
+	dto := dtoMongoFromCreateParams(params)
+
+	result, err := r.collection().InsertOne(r.ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+
+	dto.Id = result.InsertedID.(primitive.ObjectID)
+
+	return dto, nil
+}
+
+// utils
+
+func dtoMongoFromCreateParams(params *CreateParams) *dtoMongo {
+	return &dtoMongo{
+		FromID:    params.FromID,
+		ToID:      params.ToID,
+		Date:      params.Date,
+		Count:     params.Count,
+		CreatedAt: time.Now(),
+	}
+}
+
+func bsonFilter(filter *Filter) bson.M {
 	f := bson.M{}
 
 	if filter != nil {
@@ -111,47 +163,5 @@ func (r *MongoRepository) findAll(filter *Filter) ([]dto, error) {
 		}
 	}
 
-	cursor, err := r.collection().Find(r.ctx, f)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		err := cursor.Close(r.ctx)
-		if err != nil {
-			log.Print(err)
-		}
-	}()
-
-	var result []dto
-	for cursor.Next(r.ctx) {
-		var dto *dtoMongo
-
-		err := cursor.Decode(dto)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, dto)
-	}
-
-	return result, nil
-}
-
-func (r *MongoRepository) create(params *CreateParams) (dto, error) {
-	dto := &dtoMongo{
-		FromID:    params.FromID,
-		ToID:      params.ToID,
-		Date:      params.Date,
-		Count:     params.Count,
-		CreatedAt: time.Now(),
-	}
-
-	result, err := r.collection().InsertOne(r.ctx, dto)
-	if err != nil {
-		return nil, err
-	}
-
-	dto.Id = result.InsertedID.(primitive.ObjectID)
-
-	return dto, nil
+	return f
 }
