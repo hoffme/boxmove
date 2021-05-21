@@ -36,23 +36,21 @@ func (d *dtoMongo) view() *View {
 type MongoRepository struct {
 	conn           *storage.Connection
 	ctx            context.Context
-	databaseName   string
 	collectionName string
 	key 		   string
 }
 
-func NewMongoRepository(conn *storage.Connection, databaseName, collectionName, key string) (Repository, error) {
+func NewMongoRepository(conn *storage.Connection, collectionName, key string) (Repository, error) {
 	return &MongoRepository{
 		conn:           conn,
 		ctx:            conn.Ctx,
-		databaseName:   databaseName,
 		collectionName: collectionName,
 		key: 			key,
 	}, nil
 }
 
 func (r *MongoRepository) collection() *mongo.Collection {
-	return r.conn.Client.Database(r.databaseName).Collection(r.collectionName)
+	return r.conn.DB().Collection(r.collectionName)
 }
 
 func (r *MongoRepository) findById(id string) (dto, error) {

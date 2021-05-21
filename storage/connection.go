@@ -9,13 +9,14 @@ import (
 )
 
 type Connection struct {
-	Client *mongo.Client
-	Ctx    context.Context
+	Client   *mongo.Client
+	Ctx      context.Context
+	Database string
 }
 
 var connection *Connection
 
-func GetConnection(uri string, ctx context.Context) (*Connection, error) {
+func GetConnection(uri, database string, ctx context.Context) (*Connection, error) {
 	if connection != nil {
 		return connection, nil
 	}
@@ -36,11 +37,16 @@ func GetConnection(uri string, ctx context.Context) (*Connection, error) {
 	}
 
 	connection = &Connection{
-		Client: client,
-		Ctx: ctx,
+		Client:   client,
+		Ctx: 	  ctx,
+		Database: database,
 	}
 
 	return connection, nil
+}
+
+func (c *Connection) DB() *mongo.Database {
+	return c.Client.Database(c.Database)
 }
 
 func (c *Connection) Close() {
