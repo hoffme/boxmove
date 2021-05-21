@@ -45,32 +45,32 @@ func FindBox(repo Repository, id string) (*Box, error) {
 		return nil, nil
 	}
 
-	node := &Box{
+	box := &Box{
 		repo: repo,
 		id: id,
 		dto: dto,
 	}
 
-	return node, nil
+	return box, nil
 }
 
 func FindBoxes(repo Repository, filter *Filter) ([]*Box, error) {
-	var nodes []*Box
-
 	results, err := repo.findAll(filter)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, dto := range results {
-		id := dto.view().ID
+	var boxes []*Box
 
-		nodes = append(nodes, &Box{
+	for _, dto := range results {
+		box := &Box{
 			repo: repo,
-			id: id,
+			id: dto.view().ID,
 			dto: dto,
-		})
+		}
+
+		boxes = append(boxes, box)
 	}
 
-	return nodes, nil
+	return boxes, nil
 }

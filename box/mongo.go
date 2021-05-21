@@ -30,6 +30,9 @@ func (d *dtoMongo) view() *View {
 		Route:     d.Route,
 		Name:      d.Name,
 		Type:      d.Type,
+		CreatedAt: d.CreatedAt,
+		UpdatedAt: d.UpdatedAt,
+		DeletedAt: d.DeletedAt,
 	}
 }
 
@@ -193,14 +196,7 @@ func (b *mongoRepository) remove(dto dto) error {
 		return errors.New("invalid dto")
 	}
 
-	if dtoMongo.DeletedAt == nil {
-		return errors.New("the box is not deleted")
-	}
-
-	searchParams := bson.M{
-		"_id": dtoMongo.Id,
-		"deleted_at": bson.D{bson.E{ Key: "$ne", Value: nil }},
-	}
+	searchParams := bson.M{ "_id": dtoMongo.Id }
 
 	result, err := b.collection().DeleteOne(b.ctx, searchParams)
 	if err != nil {
