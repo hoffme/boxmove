@@ -21,6 +21,7 @@ type dtoMongo struct {
 	CreatedAt time.Time			 `bson:"created_at"`
 	UpdatedAt time.Time			 `bson:"updated_at"`
 	DeletedAt *time.Time		 `bson:"deleted_at"`
+	Key 	  string			 `bson:"key"`
 }
 
 func (d *dtoMongo) view() *View {
@@ -40,14 +41,16 @@ type mongoRepository struct {
 	ctx            context.Context
 	databaseName   string
 	collectionName string
+	key 		   string
 }
 
-func NewMongoRepository(conn *storage.Connection, databaseName, collectionName string) (Repository, error) {
+func NewMongoRepository(conn *storage.Connection, databaseName, collectionName, key string) (Repository, error) {
 	repo := &mongoRepository{
 		conn: 			conn,
 		ctx:            conn.Ctx,
 		databaseName:   databaseName,
 		collectionName: collectionName,
+		key: 			key,
 	}
 
 	_, err := repo.collection().Indexes().CreateOne(repo.ctx, mongo.IndexModel{
@@ -71,7 +74,7 @@ func (b *mongoRepository) findById(id string) (dto, error) {
 	}
 
 	dto := &dtoMongo{}
-	err = b.collection().FindOne(b.ctx, bson.M{ "_id": idP }).Decode(dto)
+	err = b.collection().FindOne(b.ctx, bson.M{ "_id": idP, "key": b.key }).Decode(dto)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +84,7 @@ func (b *mongoRepository) findById(id string) (dto, error) {
 
 func (b *mongoRepository) findAll(filter *Filter) ([]dto, error) {
 	f := bsonFilter(filter)
+	f["key"] = b.key
 
 	cursor, err := b.collection().Find(b.ctx, f)
 	if err != nil {
@@ -109,7 +113,7 @@ func (b *mongoRepository) findAll(filter *Filter) ([]dto, error) {
 }
 
 func (b *mongoRepository) create(fields *createParams) (dto, error) {
-	dto := dtoMongoFromCreateParams(fields)
+	dto := dtoMongoFromCreateParams(fields, b.key)
 
 	result, err := b.collection().InsertOne(b.ctx, dto)
 	if err != nil {
@@ -129,7 +133,7 @@ func (b *mongoRepository) update(dto dto, fields *updateParams) error {
 
 	timeUpdate := time.Now()
 
-	result, err := b.collection().UpdateByID(b.ctx, dtoMongo.Id, bson.D{
+	result, err := b.collection().UpdateOne(b.ctx, bson.M{ "_id": dtoMongo.Id, "key": b.key }, bson.D{
 		{ "$set", bsonUpdate(fields, timeUpdate) },
 	})
 	if err != nil {
@@ -139,7 +143,13 @@ func (b *mongoRepository) update(dto dto, fields *updateParams) error {
 		return errors.New("not found Box")
 	}
 
-	dtoMongo.update(fields, timeUpdate)
+	dtoMongo.UpdatedAt = timeUpdate
+	if fields.Route != nil {
+		dtoMongo.Route = *fields.Route
+	}
+	if fields.Name != nil {
+		dtoMongo.Name = *fields.Name
+	}
 
 	return nil
 }
@@ -152,7 +162,7 @@ func (b *mongoRepository) delete(dto dto) error {
 
 	timeDeleted := time.Now()
 
-	_, err := b.collection().UpdateByID(b.ctx, dtoMongo.Id, bson.D{
+	_, err := b.collection().UpdateOne(b.ctx, bson.M{ "_id": dtoMongo.Id, "key": b.key }, bson.D{
 		{ "$set", bson.D{
 			{ "deleted_at", timeDeleted },
 		} },
@@ -172,7 +182,7 @@ func (b *mongoRepository) restore(dto dto) error {
 		return errors.New("invalid dto")
 	}
 
-	_, err := b.collection().UpdateByID(b.ctx, dtoMongo.Id, bson.D{
+	_, err := b.collection().UpdateOne(b.ctx, bson.M{ "_id": dtoMongo.Id, "key": b.key }, bson.D{
 		{ "$set", bson.D{
 			{ "deleted_at", nil },
 		} },
@@ -192,9 +202,7 @@ func (b *mongoRepository) remove(dto dto) error {
 		return errors.New("invalid dto")
 	}
 
-	searchParams := bson.M{ "_id": dtoMongo.Id }
-
-	result, err := b.collection().DeleteOne(b.ctx, searchParams)
+	result, err := b.collection().DeleteOne(b.ctx, bson.M{ "_id": dtoMongo.Id, "key": b.key })
 	if err != nil {
 		return err
 	}
@@ -208,13 +216,14 @@ func (b *mongoRepository) remove(dto dto) error {
 
 // utils
 
-func dtoMongoFromCreateParams(fields *createParams) *dtoMongo {
+func dtoMongoFromCreateParams(fields *createParams, key string) *dtoMongo {
 	return &dtoMongo{
 		Route:     fields.Route,
 		Name:      fields.Name,
 		Type:      fields.Type,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		Key:       key,
 	}
 }
 
@@ -266,15 +275,4 @@ func bsonUpdate(fields *updateParams, time time.Time) bson.D {
 	}
 
 	return result
-}
-
-func (d *dtoMongo) update(fields *updateParams, time time.Time) {
-	d.UpdatedAt = time
-
-	if fields.Route != nil {
-		d.Route = *fields.Route
-	}
-	if fields.Name != nil {
-		d.Name = *fields.Name
-	}
 }

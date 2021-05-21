@@ -19,6 +19,7 @@ type dtoMongo struct {
 	Date      time.Time  		 `bson:"date"`
 	Count     uint64             `bson:"count"`
 	CreatedAt time.Time          `bson:"create_at"`
+	Key 	  string			 `bson:"key"`
 }
 
 func (d *dtoMongo) view() *View {
@@ -37,14 +38,16 @@ type MongoRepository struct {
 	ctx            context.Context
 	databaseName   string
 	collectionName string
+	key 		   string
 }
 
-func NewMongoRepository(conn *storage.Connection, databaseName, collectionName string) (Repository, error) {
+func NewMongoRepository(conn *storage.Connection, databaseName, collectionName, key string) (Repository, error) {
 	return &MongoRepository{
 		conn:           conn,
 		ctx:            conn.Ctx,
 		databaseName:   databaseName,
 		collectionName: collectionName,
+		key: 			key,
 	}, nil
 }
 
@@ -59,7 +62,7 @@ func (r *MongoRepository) findById(id string) (dto, error) {
 	}
 
 	dto := &dtoMongo{}
-	err = r.collection().FindOne(r.ctx, bson.M{ "_id": idP }).Decode(dto)
+	err = r.collection().FindOne(r.ctx, bson.M{ "_id": idP, "key": r.key }).Decode(dto)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +72,7 @@ func (r *MongoRepository) findById(id string) (dto, error) {
 
 func (r *MongoRepository) findAll(filter *Filter) ([]dto, error) {
 	f := bsonFilter(filter)
+	f["key"] = r.key
 
 	cursor, err := r.collection().Find(r.ctx, f)
 	if err != nil {
@@ -97,7 +101,7 @@ func (r *MongoRepository) findAll(filter *Filter) ([]dto, error) {
 }
 
 func (r *MongoRepository) create(params *CreateParams) (dto, error) {
-	dto := dtoMongoFromCreateParams(params)
+	dto := dtoMongoFromCreateParams(params, r.key)
 
 	result, err := r.collection().InsertOne(r.ctx, dto)
 	if err != nil {
@@ -111,13 +115,14 @@ func (r *MongoRepository) create(params *CreateParams) (dto, error) {
 
 // utils
 
-func dtoMongoFromCreateParams(params *CreateParams) *dtoMongo {
+func dtoMongoFromCreateParams(params *CreateParams, key string) *dtoMongo {
 	return &dtoMongo{
 		FromID:    params.FromID,
 		ToID:      params.ToID,
 		Date:      params.Date,
 		Count:     params.Count,
 		CreatedAt: time.Now(),
+		Key: 	   key,
 	}
 }
 
