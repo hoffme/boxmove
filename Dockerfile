@@ -13,6 +13,4 @@ FROM scratch
 COPY --from=builder /go/bin/github.com/hoffme/boxmove .
 ENTRYPOINT ["./boxmove"]
 
-#CMD ["./main"]
-# docker build -t myapp . 
-# dsudo s
+# docker build -t boxmove .
