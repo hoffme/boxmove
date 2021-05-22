@@ -11,10 +11,18 @@ import (
 	"github.com/hoffme/boxmove/storage"
 )
 
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	return value
+}
+
 func main() {
-	DbUri    := os.Getenv("DB_URI")
-	DbName   := os.Getenv("DB_NAME")
-	HttpAddr := os.Getenv("HTTP_ADDR")
+	DbUri    := getEnv("DB_URI", "mongodb://localhost:27017")
+	DbName   := getEnv("DB_NAME", "boxmove")
+	HttpAddr := getEnv("HTTP_ADDR", ":3000")
 
 	ctx := context.TODO()
 
