@@ -2,22 +2,34 @@ package main
 
 import (
 	"context"
+	"log"
+	"os"
+
 	"github.com/hoffme/boxmove/clients"
 	"github.com/hoffme/boxmove/server"
 	"github.com/hoffme/boxmove/server/api"
-	"log"
-
 	"github.com/hoffme/boxmove/storage"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	DBURL    := "mongodb://127.0.0.1:27017/"
-	DBNAME   := "boxmove"
-	HTTPADDR := "localhost:5000"
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	DbHost   := os.Getenv("DB_HOST")
+	DbPort   := os.Getenv("DB_PORT")
+	DbUser   := os.Getenv("DB_USER")
+	DbPass   := os.Getenv("DB_PASS")
+	DbName   := os.Getenv("DB_NAME")
+	HttpAddr := os.Getenv("HTTP_ADDR")
+
+	uri := "mongodb://"+ DbUser +":"+ DbPass +"@"+ DbHost +":"+ DbPort +"/"+ DbName
 	ctx := context.TODO()
 
-	conn, err := storage.GetConnection(DBURL, DBNAME, ctx)
+	conn, err := storage.GetConnection(uri, DbName, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +37,7 @@ func main() {
 
 	cls := clients.New(conn)
 
-	srv := server.New(HTTPADDR, api.CreateRouter(cls))
+	srv := server.New(HttpAddr, api.CreateRouter(cls))
 
 	err = srv.Run()
 	if err != nil {
