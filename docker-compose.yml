@@ -2,8 +2,8 @@ version: "3.9"
 
 services:
 
-  server:
-    container_name: server
+  boxmove:
+    container_name: boxmove
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,10 +11,7 @@ services:
     ports:
       - 3000:3000
     environment:
-      DB_HOST: database
-      DB_PORT: 27017
-      DB_USER: boxmove
-      DB_PASS: boxmoveSecret
+      DB_URI: mongodb://database:27017
       DB_NAME: boxmove
       HTTP_ADDR: :3000
     links:
@@ -28,8 +25,6 @@ services:
     image: mongo
     environment:
       MONGO_INITDB_DATABASE: boxmove
-      MONGO_INITDB_ROOT_USERNAME: boxmove
-      MONGO_INITDB_ROOT_PASSWORD: boxmoveSecret
     ports:
       - 27017:27017
     restart: always

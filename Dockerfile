@@ -1,9 +1,18 @@
-FROM golang:1.16
-
-WORKDIR /go/src/app
+FROM golang:latest AS builder
+RUN apt-get update
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64
+WORKDIR /go/src/github.com/hoffme/boxmove
 COPY . .
+RUN go mod download
+RUN go build -o /go/bin/github.com/hoffme/boxmove /go/src/github.com/hoffme/boxmove/cmd/boxmove/main.go
 
-RUN go get -d -v ./...
-RUN go install -v ./...
+FROM scratch
+COPY --from=builder /go/bin/github.com/hoffme/boxmove .
+ENTRYPOINT ["./boxmove"]
 
-CMD ["./builds/boxmove"]
+#CMD ["./main"]
+# docker build -t myapp . 
+# dsudo s
