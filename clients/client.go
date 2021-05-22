@@ -10,10 +10,10 @@ import (
 )
 
 type Client struct {
-	Id           primitive.ObjectID  `bson:"_id,omitempty"`
-	CreatedAt    time.Time           `bson:"created_at"`
-	Key          string              `bson:"-"`
-	Manager      *boxmove.Management `bson:"-"`
+	Id           primitive.ObjectID  `json:"-" bson:"_id,omitempty"`
+	CreatedAt    time.Time           `json:"created_at" bson:"created_at"`
+	Key          string              `json:"key" bson:"-"`
+	Manager      *boxmove.Management `json:"-" bson:"-"`
 }
 
 func newClient() *Client {

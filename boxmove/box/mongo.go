@@ -14,7 +14,7 @@ import (
 )
 
 type dtoMongo struct {
-	Id        primitive.ObjectID `bson:"_id, omitempty"`
+	Id        primitive.ObjectID `bson:"_id,omitempty"`
 	Route     []string           `bson:"route"`
 	Name      string             `bson:"name"`
 	Type      string             `bson:"type"`
