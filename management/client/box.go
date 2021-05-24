@@ -1,4 +1,4 @@
-package boxmove
+package client
 
 import (
 	box2 "github.com/hoffme/boxmove/boxmove/box"
@@ -7,27 +7,22 @@ import (
 
 /* Box Methods */
 
-func (m *Management) NewBox(params *box2.CreateParams) (*box2.Box, error) {
-	return box2.NewBox(m.boxRepo, params)
+func (c *Client) NewBox(params *box2.CreateParams) (*box2.Box, error) {
+	return box2.NewBox(c.storageBox, params)
 }
 
-func (m *Management) FindBox(id string) (*box2.Box, error) {
-	return box2.FindBox(m.boxRepo, id)
+func (c *Client) FindBox(id string) (*box2.Box, error) {
+	return box2.FindBox(c.storageBox, id)
 }
 
-func (m *Management) FindBoxes(filter *box2.Filter) ([]*box2.Box, error) {
-	return box2.FindBoxes(m.boxRepo, filter)
+func (c *Client) FindBoxes(filter *box2.Filter) ([]*box2.Box, error) {
+	return box2.FindBoxes(c.storageBox, filter)
 }
 
 /* Stats Box */
 
-func (m *Management) BoxCount(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
-	_, _, total, err := m.BoxCountStats(b, options)
-	return total, err
-}
-
-func (m *Management) BoxCountStats(b *box2.Box, options *BoxCountsOptions) (uint64, uint64, uint64, error) {
-	moves, err := m.BoxMoves(b, &BoxMovesOptions{
+func (c *Client) BoxCountStats(b *box2.Box, options *BoxCountsOptions) (uint64, uint64, uint64, error) {
+	moves, err := c.BoxMoves(b, &BoxMovesOptions{
 		Ingress: true,
 		Egress: true,
 		DateMin: options.DateMin,
@@ -54,8 +49,13 @@ func (m *Management) BoxCountStats(b *box2.Box, options *BoxCountsOptions) (uint
 	return ingress, egress, ingress - egress, nil
 }
 
-func (m *Management) BoxCountIngress(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
-	transfers, err := m.BoxMoves(b, &BoxMovesOptions{
+func (c *Client) BoxCount(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
+	_, _, total, err := c.BoxCountStats(b, options)
+	return total, err
+}
+
+func (c *Client) BoxCountIngress(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
+	transfers, err := c.BoxMoves(b, &BoxMovesOptions{
 		Ingress: true,
 		DateMin: options.DateMin,
 		DateMax: options.DateMax,
@@ -75,8 +75,8 @@ func (m *Management) BoxCountIngress(b *box2.Box, options *BoxCountsOptions) (ui
 	return ingress, nil
 }
 
-func (m *Management) BoxCountEgress(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
-	transfers, err := m.BoxMoves(b, &BoxMovesOptions{
+func (c *Client) BoxCountEgress(b *box2.Box, options *BoxCountsOptions) (uint64, error) {
+	transfers, err := c.BoxMoves(b, &BoxMovesOptions{
 		Egress: true,
 		DateMin: options.DateMin,
 		DateMax: options.DateMax,
@@ -98,7 +98,7 @@ func (m *Management) BoxCountEgress(b *box2.Box, options *BoxCountsOptions) (uin
 
 /* Movements Box */
 
-func (m *Management) BoxMoves(b *box2.Box, options *BoxMovesOptions) ([]*move2.Move, error) {
+func (c *Client) BoxMoves(b *box2.Box, options *BoxMovesOptions) ([]*move2.Move, error) {
 	decedents, err := b.Decedents()
 	if err != nil {
 		return nil, err
@@ -126,5 +126,5 @@ func (m *Management) BoxMoves(b *box2.Box, options *BoxMovesOptions) ([]*move2.M
 		filter.ToID = ids
 	}
 
-	return move2.FindMoves(m.movRepo, filter)
+	return move2.FindMoves(c.storageMove, filter)
 }

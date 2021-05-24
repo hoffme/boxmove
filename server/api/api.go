@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hoffme/boxmove/clients"
+	"github.com/hoffme/boxmove/management"
 
 	v1 "github.com/hoffme/boxmove/server/api/v1"
 
@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func CreateRouter(cls *clients.Clients) http.Handler {
+func CreateRouter(man *management.Management) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -26,7 +26,7 @@ func CreateRouter(cls *clients.Clients) http.Handler {
 		_, _ = w.Write([]byte("pong"))
 	})
 
-	routerV1 := &v1.Api{ Clients: cls }
+	routerV1 := &v1.Api{ Management: man}
 	r.Route("/v1", routerV1.Router)
 
 	return r

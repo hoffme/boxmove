@@ -2,42 +2,42 @@ package box
 
 import "errors"
 
-func NewBox(repo Repository, params *CreateParams) (*Box, error) {
+func NewBox(repo Storage, params *CreateParams) (*Box, error) {
 	if params == nil {
 		return nil, errors.New("invalid params")
 	}
 
-	paramsRepo := &createParams{
+	paramsRepo := &DTOCreateParams{
 		Name: params.Name,
 		Type: params.Type,
 	}
 
 	if len(params.ParentID) > 0 {
-		dto, err := repo.findById(params.ParentID)
+		dto, err := repo.FindById(params.ParentID)
 		if err != nil {
 			return nil, err
 		}
 
 		paramsRepo.Route = append(paramsRepo.Route, params.ParentID)
 
-		for _, id := range dto.view().Route {
+		for _, id := range dto.View().Route {
 			paramsRepo.Route = append(paramsRepo.Route, id)
 		}
 	}
 
-	dto, err := repo.create(paramsRepo)
+	dto, err := repo.Create(paramsRepo)
 	if err != nil {
 		return nil, err
 	}
 
-	id := dto.view().ID
+	id := dto.View().ID
 	node := &Box{ repo: repo, id: id, dto: dto }
 
 	return node, nil
 }
 
-func FindBox(repo Repository, id string) (*Box, error) {
-	dto, err := repo.findById(id)
+func FindBox(repo Storage, id string) (*Box, error) {
+	dto, err := repo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +54,15 @@ func FindBox(repo Repository, id string) (*Box, error) {
 	return box, nil
 }
 
-func FindBoxes(repo Repository, filter *Filter) ([]*Box, error) {
-	results, err := repo.findAll(filter)
+func FindBoxes(repo Storage, filter *Filter) ([]*Box, error) {
+	results, err := repo.FindAll(&DTOFilterParams{
+		ID: filter.ID,
+		ParentID: filter.ParentID,
+		AncestorID: filter.AncestorID,
+		Name: filter.Name,
+		Type: filter.Type,
+		Deleted: filter.Deleted,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +72,7 @@ func FindBoxes(repo Repository, filter *Filter) ([]*Box, error) {
 	for _, dto := range results {
 		box := &Box{
 			repo: repo,
-			id: dto.view().ID,
+			id: dto.View().ID,
 			dto: dto,
 		}
 

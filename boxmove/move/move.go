@@ -3,8 +3,8 @@ package move
 import "time"
 
 type Move struct {
-	repo Repository
-	dto  dto
+	repo Storage
+	dto  DTO
 	id   string
 }
 
@@ -18,11 +18,11 @@ type View struct {
 }
 
 func (t *Move) View() *View {
-	return t.dto.view()
+	return t.dto.View()
 }
 
 func (t *Move) Refresh() error {
-	dto, err := t.repo.findById(t.id)
+	dto, err := t.repo.FindById(t.id)
 	if err != nil {
 		return err
 	}

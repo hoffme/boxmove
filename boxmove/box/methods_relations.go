@@ -13,7 +13,7 @@ func (b *Box) Parent() (*Box, error) {
 
 	parentId := view.Route[0]
 
-	dto, err := b.repo.findById(parentId)
+	dto, err := b.repo.FindById(parentId)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (b *Box) Parent() (*Box, error) {
 }
 
 func (b *Box) Ancestors() ([]*Box, error) {
-	result, err := b.repo.findAll(&Filter{ ID: b.View().Route })
+	result, err := b.repo.FindAll(&DTOFilterParams{ ID: b.View().Route })
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (b *Box) Ancestors() ([]*Box, error) {
 	for _, dto := range result {
 		box := &Box{
 			repo: b.repo,
-			id:   dto.view().ID,
+			id:   dto.View().ID,
 			dto:  dto,
 		}
 
@@ -63,7 +63,7 @@ func (b *Box) HasAncestor(ancestor *Box) (bool, error) {
 func (b *Box) Children() ([]*Box, error) {
 	var children []*Box
 
-	results, err := b.repo.findAll(&Filter{ ParentID: &b.id })
+	results, err := b.repo.FindAll(&DTOFilterParams{ ParentID: &b.id })
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (b *Box) Children() ([]*Box, error) {
 	for _, dto := range results {
 		box := &Box{
 			repo: b.repo,
-			id:   dto.view().ID,
+			id:   dto.View().ID,
 			dto:  dto,
 		}
 
@@ -82,7 +82,7 @@ func (b *Box) Children() ([]*Box, error) {
 }
 
 func (b *Box) Decedents() ([]*Box, error) {
-	results, err := b.repo.findAll(&Filter{ AncestorID: &b.id })
+	results, err := b.repo.FindAll(&DTOFilterParams{ AncestorID: &b.id })
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (b *Box) Decedents() ([]*Box, error) {
 	for _, dto := range results {
 		node := &Box{
 			repo: b.repo,
-			id:   dto.view().ID,
+			id:   dto.View().ID,
 			dto:  dto,
 		}
 
@@ -103,7 +103,7 @@ func (b *Box) Decedents() ([]*Box, error) {
 }
 
 func (b *Box) Tree() (*TreeBox, error) {
-	results, err := b.repo.findAll(&Filter{ AncestorID: &b.id })
+	results, err := b.repo.FindAll(&DTOFilterParams{ AncestorID: &b.id })
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (b *Box) Tree() (*TreeBox, error) {
 	for _, dto := range results {
 		box := &Box{
 			repo: b.repo,
-			id:   dto.view().ID,
+			id:   dto.View().ID,
 			dto:  dto,
 		}
 		boxes[box.id] = &TreeBox{ Box: box}

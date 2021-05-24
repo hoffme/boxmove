@@ -15,7 +15,7 @@ func (api *Api) auth(next http.Handler) http.Handler {
 			return
 		}
 
-		client, err := api.Clients.Get(auth[1])
+		client, err := api.Management.GetClient(auth[1])
 		if err != nil {
 			return
 		}

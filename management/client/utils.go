@@ -1,4 +1,4 @@
-package boxmove
+package client
 
 import (
 	"time"
@@ -18,4 +18,8 @@ type BoxCountsOptions struct {
 	DateMin  time.Time	`json:"date_min"`
 	DateMax  time.Time	`json:"date_max"`
 	Deleted  bool		`json:"deleted"`
+}
+
+type CreateClientParams struct {
+	Name string `json:"name"`
 }

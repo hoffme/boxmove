@@ -6,9 +6,9 @@ import (
 )
 
 type Box struct {
-	repo Repository
+	repo Storage
 	id   string
-	dto  dto
+	dto  DTO
 }
 
 type View struct {
@@ -26,11 +26,11 @@ func (b *Box) View() *View {
 		return nil
 	}
 
-	return b.dto.view()
+	return b.dto.View()
 }
 
 func (b *Box) Refresh() error {
-	dto, err := b.repo.findById(b.id)
+	dto, err := b.repo.FindById(b.id)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (b *Box) EqualTo(node *Box) bool {
 }
 
 func (b *Box) SetName(name string) error {
-	err := b.repo.update(b.dto, &updateParams{ Name: &name })
+	err := b.repo.Update(b.dto, &DTOUpdateParams{ Name: &name })
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (b *Box) SetParent(box *Box) error {
 		*newRoute = append(*newRoute, ancestorID)
 	}
 
-	err := b.repo.update(b.dto, &updateParams{ Route: newRoute })
+	err := b.repo.Update(b.dto, &DTOUpdateParams{ Route: newRoute })
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (b *Box) SetParent(box *Box) error {
 }
 
 func (b *Box) Delete() error {
-	err := b.repo.delete(b.dto)
+	err := b.repo.Delete(b.dto)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (b *Box) Remove() error {
 		return errors.New("the box is not deleted")
 	}
 
-	err = b.repo.remove(b.dto)
+	err = b.repo.Remove(b.dto)
 	if err != nil {
 		return err
 	}
