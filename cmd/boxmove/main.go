@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/hoffme/boxmove/app"
-	"github.com/hoffme/boxmove/server"
+	"github.com/hoffme/boxmove/interface"
 	"github.com/hoffme/boxmove/storage"
 )
 
@@ -15,15 +15,15 @@ func main() {
 	}
 	defer storageService.Close()
 
-	appService, err := app.NewAppService(storageService)
+	appService, err := app.NewService(storageService)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	serverService, err := server.NewService(appService)
+	interfaceService, err := _interface.NewService(appService)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	serverService.Start()
+	interfaceService.Start()
 }

@@ -1,10 +1,10 @@
-package server
+package _interface
 
 import (
 	"log"
 
 	"github.com/hoffme/boxmove/app"
-	"github.com/hoffme/boxmove/server/web"
+	"github.com/hoffme/boxmove/interface/web"
 	"github.com/hoffme/boxmove/utils"
 )
 

@@ -16,7 +16,7 @@ type Service struct {
 	Moves 	*move.Store
 }
 
-func NewAppService(storage *storage.Service) (*Service, error) {
+func NewService(storage *storage.Service) (*Service, error) {
 	service := &Service{
 		Clients: &client.Store{ Storage: storage.ClientStorage },
 		Actives: &active.Store{ Storage: storage.ActiveStorage },
