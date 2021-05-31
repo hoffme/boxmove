@@ -198,7 +198,7 @@ func bsonUpdate(params *client.UpdateParams, date time.Time) (bson.D, error) {
 		fields = append(fields, bson.E{ Key: "name", Value: *params.Name })
 	}
 
-	return bson.D{{ "$set", params }}, nil
+	return bson.D{{ "$set", fields }}, nil
 }
 
 func bsonFilter(params *client.Filter) (bson.M, error) {

@@ -3,27 +3,50 @@ package web
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/hoffme/boxmove/app"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
-type api struct {
+type API struct {
 	App *app.Service
 }
 
-func (a *api) routerClients(r chi.Router) {
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/delete", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/restore", func(w http.ResponseWriter, r *http.Request) {})
-	r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {})
+func NewApi(app *app.Service) *API {
+	return &API{ App: app }
 }
 
-func (a *api) middlewareClient(next http.Handler) http.Handler {
+func (a *API) Router() http.Handler {
+	router := chi.NewRouter()
+
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.Timeout(10 * time.Second))
+
+	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("pong"))
+	})
+
+	router.Route("/clients", a.routerClients)
+
+	router.Route("/boxmove/{client}", func(r chi.Router) {
+		r.Use(a.clientMiddleware)
+
+		r.Route("/actives", a.routerActives)
+		r.Route("/boxes", a.routerBoxes)
+		r.Route("/moves", a.routerMoves)
+	})
+
+	return router
+}
+
+func (a *API) clientMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "client")
 
@@ -40,35 +63,4 @@ func (a *api) middlewareClient(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "client", client)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func (a *api) routerActives(r chi.Router) {
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/delete", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/restore", func(w http.ResponseWriter, r *http.Request) {})
-	r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-}
-
-func (a *api) routerBoxes(r chi.Router) {
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}/parent", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}/ancestors", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}/children", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}/decedents", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}/decedents/tree", func(w http.ResponseWriter, r *http.Request) {})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/delete", func(w http.ResponseWriter, r *http.Request) {})
-	r.Put("/{id}/restore", func(w http.ResponseWriter, r *http.Request) {})
-	r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-}
-
-func (a *api) routerMoves(r chi.Router) {
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {})
-	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {})
 }

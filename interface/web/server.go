@@ -17,7 +17,7 @@ func NewServerHTTP(addr string, router http.Handler) *ServerHTTP {
 	}
 }
 
-func (s *ServerHTTP) Run() error {
+func (s *ServerHTTP) Start() error {
 	fmt.Printf("Starting on %s\n", s.Addr)
 	return http.ListenAndServe(s.Addr, s.Router)
 }

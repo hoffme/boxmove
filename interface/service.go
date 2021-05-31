@@ -13,9 +13,10 @@ type Service struct {
 }
 
 func NewService(app *app.Service) (*Service, error) {
-	httpAddr   := utils.GetEnv("HTTP_ADDR", ":3000")
-	httpRouter := web.Router(app)
-	httpServer := web.NewServerHTTP(httpAddr, httpRouter)
+	httpAddr := utils.GetEnv("HTTP_ADDR", ":3000")
+	api 	 := web.NewApi(app)
+
+	httpServer := web.NewServerHTTP(httpAddr, api.Router())
 
 	service := &Service{
 		http: httpServer,
@@ -25,7 +26,7 @@ func NewService(app *app.Service) (*Service, error) {
 }
 
 func (s *Service) Start() {
-	err := s.http.Run()
+	err := s.http.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
