@@ -1,4 +1,4 @@
-package box
+package active
 
 type DTO interface {
 	ID()   string

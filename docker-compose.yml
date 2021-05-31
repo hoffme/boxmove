@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   boxmove:
     container_name: boxmove
     build:

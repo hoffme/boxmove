@@ -1,4 +1,4 @@
-package box
+package client
 
 type DTO interface {
 	ID()   string
@@ -6,9 +6,9 @@ type DTO interface {
 }
 
 type Storage interface {
-	FindOne(client, id string) (DTO, error)
-	FindAll(client string, params *Filter) ([]DTO, error)
-	Create(client string, params *CreateParams) (DTO, error)
+	FindOne(id string) (DTO, error)
+	FindAll(params *Filter) ([]DTO, error)
+	Create(params *CreateParams) (DTO, error)
 	Update(dto DTO, params *UpdateParams) error
 	Delete(dto DTO) error
 	Restore(dto DTO) error

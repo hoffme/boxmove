@@ -1,4 +1,5 @@
 FROM golang:latest AS builder
+LABEL stage=builder
 RUN apt-get update
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
@@ -14,3 +15,4 @@ COPY --from=builder /go/bin/github.com/hoffme/boxmove .
 ENTRYPOINT ["./boxmove"]
 
 # docker build -t boxmove .
+# docker image prune --filter label=stage=builder
