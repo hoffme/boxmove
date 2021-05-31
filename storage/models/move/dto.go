@@ -1,4 +1,4 @@
-package mongo
+package move
 
 import (
 	"github.com/hoffme/boxmove/boxmove/move"

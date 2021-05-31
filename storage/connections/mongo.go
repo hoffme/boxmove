@@ -1,4 +1,4 @@
-package storage
+package connections
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type MongoConnection struct {
 	DatabaseName string
 }
 
-func getMongo(uri, database string, ctx context.Context) (*MongoConnection, error) {
+func MongoDB(uri, database string, ctx context.Context) (*MongoConnection, error) {
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, err

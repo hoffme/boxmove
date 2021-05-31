@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/hoffme/boxmove/app"
-	"github.com/hoffme/boxmove/server"
 	"log"
 
+	"github.com/hoffme/boxmove/app"
+	"github.com/hoffme/boxmove/server"
 	"github.com/hoffme/boxmove/storage"
 )
 

@@ -1,18 +1,17 @@
-package mongo
+package box
 
 import (
 	"context"
-
-	"github.com/hoffme/boxmove/storage"
+	"github.com/hoffme/boxmove/storage/connections"
 )
 
 type Storage struct {
-	connection     *storage.MongoConnection
+	connection     *connections.MongoConnection
 	ctx            context.Context
 	collectionName string
 }
 
-func New(conn *storage.MongoConnection, collectionName string) (*Storage, error) {
+func New(conn *connections.MongoConnection, collectionName string) (*Storage, error) {
 	storageMongo := &Storage{
 		connection:     conn,
 		ctx:            conn.Ctx,

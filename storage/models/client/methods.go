@@ -1,10 +1,10 @@
-package mongo
+package client
 
 import (
 	"errors"
 	"time"
 
-	"github.com/hoffme/boxmove/boxmove/active"
+	"github.com/hoffme/boxmove/boxmove/client"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +15,7 @@ func (s *Storage) collection() *mongo.Collection {
 	return s.connection.DB().Collection(s.collectionName)
 }
 
-func (s *Storage) FindOne(client, id string) (active.DTO, error) {
+func (s *Storage) FindOne(id string) (client.DTO, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (s *Storage) FindOne(client, id string) (active.DTO, error) {
 	dto := &DTO{}
 	err = s.collection().FindOne(
 		s.ctx,
-		bson.M{ "_id": oid, "client": client },
+		bson.M{ "_id": oid },
 	).Decode(dto)
 	if err != nil {
 		return nil, err
@@ -33,12 +33,12 @@ func (s *Storage) FindOne(client, id string) (active.DTO, error) {
 	return dto, nil
 }
 
-func (s *Storage) FindAll(client string, params *active.Filter) ([]active.DTO, error) {
+func (s *Storage) FindAll(params *client.Filter) ([]client.DTO, error) {
 	if params == nil {
 		return nil, errors.New("invalid filter")
 	}
 
-	filter, err := bsonFilter(client, params)
+	filter, err := bsonFilter(params)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *Storage) FindAll(client string, params *active.Filter) ([]active.DTO, e
 	}
 	defer func() { _ = cursor.Close(s.ctx) }()
 
-	var result []active.DTO
+	var result []client.DTO
 	for cursor.Next(s.ctx) {
 		dto := &DTO{}
 
@@ -64,7 +64,7 @@ func (s *Storage) FindAll(client string, params *active.Filter) ([]active.DTO, e
 	return result, nil
 }
 
-func (s *Storage) Create(client string, params *active.CreateParams) (active.DTO, error) {
+func (s *Storage) Create(params *client.CreateParams) (client.DTO, error) {
 	if params == nil {
 		return nil, errors.New("invalid params")
 	}
@@ -72,10 +72,7 @@ func (s *Storage) Create(client string, params *active.CreateParams) (active.DTO
 	now := time.Now()
 
 	dto := &DTO{
-		Client: client,
-		Code: params.Code,
 		Name: params.Name,
-		Meta: params.Meta,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -90,7 +87,7 @@ func (s *Storage) Create(client string, params *active.CreateParams) (active.DTO
 	return dto, nil
 }
 
-func (s *Storage) Update(dtoI active.DTO, params *active.UpdateParams) error {
+func (s *Storage) Update(dtoI client.DTO, params *client.UpdateParams) error {
 	dto, ok := dtoI.(*DTO)
 	if !ok {
 		return errors.New("invalid DTO")
@@ -104,7 +101,7 @@ func (s *Storage) Update(dtoI active.DTO, params *active.UpdateParams) error {
 
 	result, err := s.collection().UpdateOne(
 		s.ctx,
-		bson.M{ "_id": dto.OID, "client": dto.Client },
+		bson.M{ "_id": dto.OID },
 		update,
 	)
 	if err != nil {
@@ -118,14 +115,11 @@ func (s *Storage) Update(dtoI active.DTO, params *active.UpdateParams) error {
 	if params.Name != nil {
 		dto.Name = *params.Name
 	}
-	if params.Meta != nil {
-		dto.Meta = *params.Meta
-	}
 
 	return nil
 }
 
-func (s *Storage) Delete(dtoInterface active.DTO) error {
+func (s *Storage) Delete(dtoInterface client.DTO) error {
 	dto, ok := dtoInterface.(*DTO)
 	if !ok {
 		return errors.New("invalid DTO")
@@ -135,7 +129,7 @@ func (s *Storage) Delete(dtoInterface active.DTO) error {
 
 	result, err := s.collection().UpdateOne(
 		s.ctx,
-		bson.M{ "_id": dto.OID, "client": dto.Client },
+		bson.M{ "_id": dto.OID },
 		bson.D{{ "$set", bson.D{{ "deleted_at", timeDeleted }}}},
 	)
 	if err != nil {
@@ -150,7 +144,7 @@ func (s *Storage) Delete(dtoInterface active.DTO) error {
 	return nil
 }
 
-func (s *Storage) Restore(dtoInterface active.DTO) error {
+func (s *Storage) Restore(dtoInterface client.DTO) error {
 	dto, ok := dtoInterface.(*DTO)
 	if !ok {
 		return errors.New("invalid DTO")
@@ -158,7 +152,7 @@ func (s *Storage) Restore(dtoInterface active.DTO) error {
 
 	result, err := s.collection().UpdateOne(
 		s.ctx,
-		bson.M{ "_id": dto.OID, "client": dto.Client },
+		bson.M{ "_id": dto.OID },
 		bson.D{{ "$set", bson.D{{ "deleted_at", nil }}}},
 	)
 	if err != nil {
@@ -173,7 +167,7 @@ func (s *Storage) Restore(dtoInterface active.DTO) error {
 	return nil
 }
 
-func (s *Storage) Remove(dtoInterface active.DTO) error {
+func (s *Storage) Remove(dtoInterface client.DTO) error {
 	dto, ok := dtoInterface.(*DTO)
 	if !ok {
 		return errors.New("invalid DTO")
@@ -181,7 +175,7 @@ func (s *Storage) Remove(dtoInterface active.DTO) error {
 
 	result, err := s.collection().DeleteOne(
 		s.ctx,
-		bson.M{ "_id": dto.OID, "client": dto.Client },
+		bson.M{ "_id": dto.OID },
 	)
 	if err != nil {
 		return err
@@ -193,25 +187,22 @@ func (s *Storage) Remove(dtoInterface active.DTO) error {
 	return nil
 }
 
-func bsonUpdate(params *active.UpdateParams, date time.Time) (bson.D, error) {
+func bsonUpdate(params *client.UpdateParams, date time.Time) (bson.D, error) {
 	fields := bson.D{{ Key: "updated_at", Value: date } }
 
-	if params == nil || params.Name == nil || params.Meta == nil {
+	if params == nil || params.Name == nil {
 		return nil, errors.New("empty fields update")
 	}
 
 	if params.Name != nil {
 		fields = append(fields, bson.E{ Key: "name", Value: *params.Name })
 	}
-	if params.Meta != nil {
-		fields = append(fields, bson.E{ Key: "meta", Value: *params.Meta })
-	}
 
 	return bson.D{{ "$set", params }}, nil
 }
 
-func bsonFilter(client string, params *active.Filter) (bson.M, error) {
-	filter := bson.M{ "client": client }
+func bsonFilter(params *client.Filter) (bson.M, error) {
+	filter := bson.M{}
 
 	if params.ID != nil && len(params.ID) > 0 {
 		var ids []primitive.ObjectID
@@ -225,9 +216,6 @@ func bsonFilter(client string, params *active.Filter) (bson.M, error) {
 	}
 	if len(params.Name) > 0 {
 		filter["name"] = bson.M{ "$search": params.Name }
-	}
-	if params.Codes != nil && len(params.Codes) > 0 {
-		filter["code"] = bson.M{ "$in": params.Codes }
 	}
 
 	if params.Deleted {

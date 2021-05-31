@@ -29,6 +29,10 @@ func (a *api) middlewareClient(next http.Handler) http.Handler {
 
 		client, err := a.App.Clients.FindOne(id)
 		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		if client == nil {
 			http.Error(w, "client not found", 404)
 			return
 		}
