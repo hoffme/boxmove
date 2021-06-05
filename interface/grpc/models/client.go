@@ -20,29 +20,29 @@ func NewClientProtoService(app *app.Service) client.ServiceServer {
 }
 
 func (s *ClientProtoService) GetAll(ctx context.Context, params *client.FilterRequest) (*client.ListClientsResponse, error) {
-	return &client.ListClientsResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Get(ctx context.Context, id *client.IdRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Create(ctx context.Context, params *client.CreateRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Update(ctx context.Context, params *client.UpdateRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Delete(ctx context.Context, id *client.IdRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Restore(ctx context.Context, id *client.IdRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }
 
 func (s *ClientProtoService) Remove(ctx context.Context, id *client.IdRequest) (*client.ClientResponse, error) {
-	return &client.ClientResponse{}, nil
+	panic("implement me")
 }

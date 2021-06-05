@@ -19,7 +19,7 @@ import (
 type Server struct {
 	addr    string
 	network string
-	server  *grpc.Server
+	grpc    *grpc.Server
 }
 
 func New(app *app.Service) *Server {
@@ -29,9 +29,17 @@ func New(app *app.Service) *Server {
 	server := &Server{
 		addr:    addr,
 		network: network,
+		grpc:    grpc.NewServer(),
 	}
 
-	server.loadServices(app)
+	clientService := models.NewClientProtoService(app)
+	client.RegisterServiceServer(server.grpc, clientService)
+
+	boxService := models.NewBoxProtoService(app)
+	box.RegisterServiceServer(server.grpc, boxService)
+
+	moveService := models.NewMoveProtoService(app)
+	move.RegisterServiceServer(server.grpc, moveService)
 
 	return server
 }
@@ -44,20 +52,5 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	return s.server.Serve(lis)
-}
-
-func (s *Server) loadServices(app *app.Service) {
-	server := grpc.NewServer()
-
-	clientService := models.NewClientProtoService(app)
-	client.RegisterServiceServer(server, clientService)
-
-	boxService := models.NewBoxProtoService(app)
-	box.RegisterServiceServer(server, boxService)
-
-	moveService := models.NewMoveProtoService(app)
-	move.RegisterServiceServer(server, moveService)
-
-	s.server = server
+	return s.grpc.Serve(lis)
 }
