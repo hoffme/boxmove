@@ -2,7 +2,6 @@ package _interface
 
 import (
 	"log"
-	"sync"
 
 	"github.com/hoffme/boxmove/app"
 
@@ -28,20 +27,25 @@ func NewService(app *app.Service) (*Service, error) {
 }
 
 func (s *Service) Start() {
-	wg := sync.WaitGroup{}
+	// wg := sync.WaitGroup{}
 
-	wg.Add(len(s.servers))
+	// wg.Add(len(s.servers))
 
-	for _, srv := range s.servers {
-		go func(srv server) {
-			defer wg.Done()
+	// for _, srv := range s.servers {
+	// 	go func(srv server) {
+	// 		defer wg.Done()
 
-			err := srv.Start()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}(srv)
+	// 		err := srv.Start()
+	// 		if err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 	}(srv)
+	// }
+
+	// wg.Wait()
+
+	err := s.servers[0].Start()
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	wg.Wait()
 }
