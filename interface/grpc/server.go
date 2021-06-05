@@ -23,7 +23,7 @@ type Server struct {
 }
 
 func New(app *app.Service) *Server {
-	addr := utils.GetEnv("GRPC_ADDR", ":3000")
+	addr := utils.GetEnv("GRPC_ADDR", ":5000")
 	network := utils.GetEnv("GRPC_NET", "tcp")
 
 	server := &Server{
