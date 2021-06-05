@@ -9,6 +9,10 @@ type Box struct {
 	client  string
 }
 
+func (b *Box) Id() string {
+	return b.id
+}
+
 func (b *Box) View() *View {
 	if b.dto == nil {
 		return nil

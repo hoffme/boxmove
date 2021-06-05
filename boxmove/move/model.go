@@ -9,6 +9,10 @@ type Move struct {
 	client  string
 }
 
+func (a *Move) Id() string {
+	return a.id
+}
+
 func (a *Move) View() *View {
 	if a.dto == nil {
 		return nil

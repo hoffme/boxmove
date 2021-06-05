@@ -5,8 +5,17 @@ import (
 	"log"
 
 	"github.com/hoffme/boxmove/boxmove/box"
+	"github.com/hoffme/boxmove/boxmove/client"
 	"github.com/hoffme/boxmove/boxmove/move"
 )
+
+func (s *Service) NewClient(params *client.CreateParams) (*client.Client, error) {
+	return s.Clients.New(params)
+}
+
+func (s *Service) NewBox(client string, params *box.CreateParams) (*box.Box, error) {
+	return s.Boxes.New(client, params)
+}
 
 func (s *Service) NewMove(client string, params *move.CreateParams) (*move.Move, error) {
 	extremes, err := s.Boxes.FindAll(client, &box.Filter{ ID: []string{ params.From, params.To } })
@@ -20,13 +29,10 @@ func (s *Service) NewMove(client string, params *move.CreateParams) (*move.Move,
 
 	boxFrom := extremes[0]
 	boxTo := extremes[1]
-	if boxFrom.View().ID != params.From {
+
+	if boxFrom.Id() != params.From {
 		boxTo = extremes[1]
 		boxFrom = extremes[0]
-	}
-
-	if boxFrom.View().ID == boxTo.View().ID {
-		return nil, errors.New("from box is same to box")
 	}
 
 	movement, err := s.Moves.New(client, params)

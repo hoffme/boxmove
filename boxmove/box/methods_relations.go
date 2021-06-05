@@ -2,11 +2,6 @@ package box
 
 import "errors"
 
-type TreeBox struct {
-	Box      *Box       `json:"box"`
-	Children []*TreeBox `json:"children"`
-}
-
 func (b *Box) Parent() (*Box, error) {
 	view := b.View()
 	if view == nil {
@@ -120,46 +115,4 @@ func (b *Box) Decedents() ([]*Box, error) {
 	}
 
 	return decedents, nil
-}
-
-func (b *Box) Tree() (*TreeBox, error) {
-	results, err := b.storage.FindAll(b.client, &Filter{ AncestorID: b.id })
-	if err != nil {
-		return nil, err
-	}
-
-	root := &TreeBox{ Box: b }
-	boxes := map[string]*TreeBox{ b.id: root }
-
-	for _, dto := range results {
-		box := &Box{
-			storage: b.storage,
-			id:      dto.View().ID,
-			dto:     dto,
-			client:  b.client,
-		}
-
-		boxes[box.id] = &TreeBox{ Box: box }
-	}
-
-	for _, treeBox := range boxes {
-		view := treeBox.Box.View()
-		if view == nil {
-			return nil, errors.New("invalid view")
-		}
-		if len(view.Route) > 0 {
-			continue
-		}
-
-		parentId := view.Route[0]
-
-		parent := boxes[parentId]
-		if parent == nil {
-			return nil, errors.New("invalid results")
-		}
-
-		parent.Children = append(parent.Children, treeBox)
-	}
-
-	return root, nil
 }

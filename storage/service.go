@@ -6,7 +6,6 @@ import (
 
 	"github.com/hoffme/boxmove/storage/connections"
 
-	"github.com/hoffme/boxmove/storage/models/active"
 	"github.com/hoffme/boxmove/storage/models/box"
 	"github.com/hoffme/boxmove/storage/models/client"
 	"github.com/hoffme/boxmove/storage/models/move"
@@ -18,8 +17,7 @@ type Service struct {
 	mongoConnection *connections.MongoConnection
 
 	ClientStorage *client.Storage
-	ActiveStorage *active.Storage
-	BoxStorage 	  *box.Storage
+	BoxStorage    *box.Storage
 	MoveStorage   *move.Storage
 }
 
@@ -41,7 +39,7 @@ func NewService() (*Service, error) {
 
 func (s *Service) setConnections() error {
 	uri := utils.GetEnv("DB_URI", "mongodb://localhost:27017")
-	db  := utils.GetEnv("DB_NAME", "active")
+	db := utils.GetEnv("DB_NAME", "active")
 	ctx := context.Background()
 
 	mongo, err := connections.MongoDB(uri, db, ctx)
@@ -60,11 +58,6 @@ func (s *Service) setStorages() error {
 		return err
 	}
 
-	activeStorage, err := active.New(s.mongoConnection, "actives")
-	if err != nil {
-		return err
-	}
-
 	boxesStorage, err := box.New(s.mongoConnection, "boxes")
 	if err != nil {
 		return err
@@ -76,9 +69,8 @@ func (s *Service) setStorages() error {
 	}
 
 	s.ClientStorage = clientStorage
-	s.ActiveStorage = activeStorage
-	s.BoxStorage    = boxesStorage
-	s.MoveStorage   = movesStorage
+	s.BoxStorage = boxesStorage
+	s.MoveStorage = movesStorage
 
 	return nil
 }

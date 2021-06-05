@@ -8,6 +8,10 @@ type Client struct {
 	id      string
 }
 
+func (a *Client) Id() string {
+	return a.id
+}
+
 func (a *Client) View() *View {
 	if a.dto == nil {
 		return nil

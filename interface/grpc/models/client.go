@@ -4,9 +4,8 @@ import (
 	"context"
 
 	"github.com/hoffme/boxmove/app"
-	clientApp "github.com/hoffme/boxmove/boxmove/client"
 
-	"github.com/hoffme/boxmove/controls/grpc/proto/client"
+	"github.com/hoffme/boxmove/interface/grpc/proto/client"
 )
 
 type ClientProtoService struct {
@@ -21,35 +20,7 @@ func NewClientProtoService(app *app.Service) client.ServiceServer {
 }
 
 func (s *ClientProtoService) GetAll(ctx context.Context, params *client.FilterRequest) (*client.ListClientsResponse, error) {
-	filter := &clientApp.Filter{
-		ID: params.Ids,
-		Name: params.Name,
-		Deleted: params.Deleted,
-	}
-
-	clients, err := s.app.Clients.FindAll(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	result := []client.Client{}
-
-	for _, clientModel := range clients {
-		view := clientModel.View()
-		if view == nil {
-			continue
-		}
-
-		result = append(result, client.Client{
-			Id: view.ID,
-			Name: view.Name,
-			CreatedAt: view.CreatedAt,
-			UpdatedAt: view.UpdatedAt,
-			DeletedAt: view.DeletedAt,
-		})
-	}
-
-	return &client.ListClientsResponse{ Clients: result }, nil
+	return &client.ListClientsResponse{}, nil
 }
 
 func (s *ClientProtoService) Get(ctx context.Context, id *client.IdRequest) (*client.ClientResponse, error) {

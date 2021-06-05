@@ -5,7 +5,7 @@ import (
 
 	"github.com/hoffme/boxmove/app"
 
-	"github.com/hoffme/boxmove/controls/grpc/proto/box"
+	"github.com/hoffme/boxmove/interface/grpc/proto/box"
 )
 
 type BoxProtoService struct {

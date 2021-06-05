@@ -8,6 +8,7 @@ ENV GO111MODULE=on \
 WORKDIR /go/src/github.com/hoffme/boxmove
 COPY . .
 RUN go mod download
+RUN make protobuf
 RUN go build -o /go/bin/github.com/hoffme/boxmove /go/src/github.com/hoffme/boxmove/cmd/boxmove/main.go
 
 FROM scratch

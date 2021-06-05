@@ -1,4 +1,4 @@
-package control
+package _interface
 
 import (
 	"log"
@@ -6,8 +6,7 @@ import (
 
 	"github.com/hoffme/boxmove/app"
 
-	"github.com/hoffme/boxmove/controls/grpc"
-	"github.com/hoffme/boxmove/controls/web"
+	"github.com/hoffme/boxmove/interface/grpc"
 )
 
 type server interface {
@@ -16,13 +15,11 @@ type server interface {
 
 type Service struct {
 	servers []server
-	wg 		sync.WaitGroup
 }
 
 func NewService(app *app.Service) (*Service, error) {
 	service := &Service{
 		servers: []server{
-			web.New(app),
 			grpc.New(app),
 		},
 	}
@@ -31,19 +28,20 @@ func NewService(app *app.Service) (*Service, error) {
 }
 
 func (s *Service) Start() {
+	wg := sync.WaitGroup{}
+
+	wg.Add(len(s.servers))
+
 	for _, srv := range s.servers {
-		go s.StartServer(srv)
+		go func(srv server) {
+			defer wg.Done()
+
+			err := srv.Start()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}(srv)
 	}
 
-	s.wg.Wait()
-}
-
-func (s *Service) StartServer(srv server) {
-	s.wg.Add(1)
-	defer s.wg.Done()
-
-	err := srv.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
+	wg.Wait()
 }

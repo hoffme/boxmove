@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/hoffme/boxmove/app"
-	"github.com/hoffme/boxmove/interface"
+	_interface "github.com/hoffme/boxmove/interface"
 	"github.com/hoffme/boxmove/storage"
 )
 

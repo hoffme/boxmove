@@ -7,12 +7,11 @@ import (
 	"github.com/hoffme/boxmove/app"
 	"github.com/hoffme/boxmove/utils"
 
-	"github.com/hoffme/boxmove/controls/grpc/models"
+	"github.com/hoffme/boxmove/interface/grpc/models"
 
-	"github.com/hoffme/boxmove/controls/grpc/proto/active"
-	"github.com/hoffme/boxmove/controls/grpc/proto/box"
-	"github.com/hoffme/boxmove/controls/grpc/proto/client"
-	"github.com/hoffme/boxmove/controls/grpc/proto/move"
+	"github.com/hoffme/boxmove/interface/grpc/proto/box"
+	"github.com/hoffme/boxmove/interface/grpc/proto/client"
+	"github.com/hoffme/boxmove/interface/grpc/proto/move"
 
 	"google.golang.org/grpc"
 )
@@ -24,11 +23,11 @@ type Server struct {
 }
 
 func New(app *app.Service) *Server {
-	addr 	:= utils.GetEnv("GRPC_ADDR", ":3000")
+	addr := utils.GetEnv("GRPC_ADDR", ":3000")
 	network := utils.GetEnv("GRPC_NET", "tcp")
 
 	server := &Server{
-		addr: addr,
+		addr:    addr,
 		network: network,
 	}
 
@@ -53,9 +52,6 @@ func (s *Server) loadServices(app *app.Service) {
 
 	clientService := models.NewClientProtoService(app)
 	client.RegisterServiceServer(server, clientService)
-
-	activeService := models.NewActiveProtoService(app)
-	active.RegisterServiceServer(server, activeService)
 
 	boxService := models.NewBoxProtoService(app)
 	box.RegisterServiceServer(server, boxService)
