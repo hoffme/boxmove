@@ -3,27 +3,24 @@ package main
 import (
 	"log"
 
-	"github.com/hoffme/boxmove/app"
-	_interface "github.com/hoffme/boxmove/interface"
-	"github.com/hoffme/boxmove/storage"
+	"github.com/hoffme/boxmove/internal/app"
+	"github.com/hoffme/boxmove/internal/storage/mongo"
 )
 
 func main() {
-	storageService, err := storage.NewService()
+	storage, err := mongo.New("", "")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer storageService.Close()
+	defer storage.Close()
 
-	appService, err := app.NewService(storageService)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	interfaceService, err := _interface.NewService(appService)
+	app, err := app.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	interfaceService.Start()
+	err = app.SetStorage(storage)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

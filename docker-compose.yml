@@ -9,10 +9,6 @@ services:
     image: boxmove
     ports:
       - 3000:3000
-    environment:
-      DB_URI: mongodb://database:27017
-      DB_NAME: boxmove
-      HTTP_ADDR: :3000
     links:
       - database:database
     depends_on:
