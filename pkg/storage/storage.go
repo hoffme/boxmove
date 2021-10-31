@@ -6,13 +6,10 @@ import (
 	"github.com/hoffme/boxmove/pkg/storage/move"
 )
 
-type Stores struct {
-	Items item.Store
-	Boxes box.Store
-	Moves move.Store
-}
-
 type Storage interface {
-	Stores() *Stores
+	Item() item.Storage
+	Box() box.Storage
+	Move() move.Storage
+
 	Close() error
 }

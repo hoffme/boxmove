@@ -4,43 +4,50 @@ import (
 	"context"
 
 	"github.com/hoffme/boxmove/pkg/storage"
-
-	"github.com/hoffme/boxmove/internal/storage/connections"
+	"github.com/hoffme/boxmove/pkg/storage/box"
+	"github.com/hoffme/boxmove/pkg/storage/item"
+	"github.com/hoffme/boxmove/pkg/storage/move"
 )
 
 type Storage struct {
-	mongoConnection *connections.MongoConnection
-	stores          *storage.Stores
+	connection *conn
+
+	box  *box_s
+	move *move_s
+	item *item_s
 }
 
-func New(uri, database string) (storage.Storage, error) {
+func New(settings *Settings) (storage.Storage, error) {
+	var err error
+
 	storage := &Storage{}
 
-	err := storage.setConnections(uri, database)
+	ctx := context.Background()
+
+	storage.connection, err = connect(settings.Uri, settings.Database, ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	storage.box = newBoxStore(storage.connection, settings.BoxCollectionName)
+	storage.move = newMoveStore(storage.connection, settings.MoveCollectionName)
+	storage.item = newItemStore(storage.connection, settings.ItemCollectionName)
+
 	return storage, nil
 }
 
-func (s *Storage) setConnections(uri, database string) error {
-	ctx := context.Background()
-
-	mongo, err := connections.MongoDB(uri, database, ctx)
-	if err != nil {
-		return err
-	}
-
-	s.mongoConnection = mongo
-
-	return nil
+func (s *Storage) Box() box.Storage {
+	return s.box
 }
 
-func (s *Storage) Stores() *storage.Stores {
-	return s.stores
+func (s *Storage) Item() item.Storage {
+	return s.item
+}
+
+func (s *Storage) Move() move.Storage {
+	return s.move
 }
 
 func (s *Storage) Close() error {
-	return s.mongoConnection.Close()
+	return s.connection.Close()
 }
